@@ -12,6 +12,8 @@ class MyHTMLParser(HTMLParser):
         self.docDic = {}
         self.docDic["pageContent"] = []
         self.parentTag = None # This will only get set if it encounters a table, list or link.
+        self.lastTag = None
+        self.openRow = False
         self.currentItem = None
         self.currentTag = None
 
@@ -35,7 +37,6 @@ class MyHTMLParser(HTMLParser):
                 self.docDic["pageContent"].append(self.currentItem)
                 self.currentItem = None
             elif tag == "ol"  or tag == "ul" and self.parentTag == None:
-                print("found list")
                 self.parentTag = tag
                 if tag == "ol":
                     self.currentItem = {"ordered_list": []}
@@ -44,16 +45,32 @@ class MyHTMLParser(HTMLParser):
             elif tag == "li":
                 self.currentTag = "li"
 
+            elif tag == "table" and self.parentTag == None:
+                self.parentTag = tag
+                self.currentItem = {"table" : []}
+            elif tag == "tr":
+                self.openRow = True
+            elif tag == "td":
+                self.currentTag = tag
+                if self.lastTag != "td":
+                    self.lastTag = tag
+                    self.currentItem["table"].append(["row", []])
 
 
 
     def handle_endtag(self, tag):
         tag = tag.lower()
-        if self.currentTag == tag or self.parentTag == tag:
+        if tag == "td":
+            self.currentTag = None
+        if tag == "tr":
+            self.openRow = False
+            self.lastTag = None
+        if tag == "a":
+            pass
+        elif self.currentTag == tag or self.parentTag == tag:
             self.currentTag = None
             self.parentTag = None
             self.docDic["pageContent"].append(self.currentItem)
-            print(self.currentItem)
             self.currentItem = None
 
     def handle_data(self, data):
@@ -69,27 +86,14 @@ class MyHTMLParser(HTMLParser):
                     key = "unordered_list"
                 if key in self.currentItem.keys():
                     self.currentItem[key].append(data.rstrip())
-
-
-    def handle_comment(self, data):
-        print("Comment  :", data)
-
-    def handle_entityref(self, name):
-        c = chr(name2codepoint[name])
-        print("Named ent:", c)
-
-    def handle_charref(self, name):
-        if name.startswith('x'):
-            c = chr(int(name[1:], 16))
-        else:
-            c = chr(int(name))
-        print("Num ent  :", c)
-
-    def handle_decl(self, data):
-        print("Decl     :", data)
+            elif self.currentTag == "td":
+                self.currentItem["table"][len(self.currentItem["table"])-1][1].append(data.rstrip())
+            elif self.currentTag == "a" and self.lastTag == "td":
+                self.currentItem["table"][len(self.currentItem["table"])-1][1].append(data.rstrip())
 
 file = open('guitar-trainer.html', 'r')
 data = file.read()
 
 parser = MyHTMLParser()
 parser.feed(data)
+print(parser.docDic)
