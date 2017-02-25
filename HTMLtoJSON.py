@@ -10,7 +10,7 @@ class MyHTMLParser(HTMLParser):
     def __init__(self):
         HTMLParser.__init__(self)
         self.docDic = {}
-        self.docDic["pageContent"] = []
+        self.docDic["pageContent"] = [[]]
         self.parentTag = None # This will only get set if it encounters a table, list or link.
         self.lastTag = None
         self.currentItem = None
@@ -76,7 +76,7 @@ class MyHTMLParser(HTMLParser):
         elif self.currentTag == tag or self.parentTag == tag:
             self.currentTag = None
             self.parentTag = None
-            self.docDic["pageContent"].append(self.currentItem)
+            self.docDic["pageContent"][0].append(self.currentItem)
             print(self.currentItem)
             self.currentItem = None
 
@@ -100,8 +100,21 @@ class MyHTMLParser(HTMLParser):
         if self.linkString != None:
             self.linkString += data.rstrip()
 
+    def exportData(self, fileName):
+        dataString = "{\n'pageContent':\n\t[\n\t\t[\n"
+        for i in self.docDic["pageContent"][0]:
+            dataString += "\t\t\t" + str(i) + ",\n"
+        dataString += "\t\t]\n\t]\n}"
+        file = open(fileName, 'w')
+        file.write(dataString)
+
+
+
+
 file = open('guitar-trainer.html', 'r')
 data = file.read()
 
 parser = MyHTMLParser()
 parser.feed(data)
+
+parser.exportData("test.json")
