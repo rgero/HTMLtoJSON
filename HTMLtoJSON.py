@@ -4,6 +4,7 @@
 
 '''
 from html.parser import HTMLParser
+import sys
 
 class MyHTMLParser(HTMLParser):
 
@@ -87,7 +88,6 @@ class MyHTMLParser(HTMLParser):
             self.currentTag = None
             self.parentTag = None
             self.docDic["pageContent"][0].append(self.currentItem)
-            print(self.currentItem)
             self.currentItem = None
 
     def handle_data(self, data):
@@ -120,11 +120,13 @@ class MyHTMLParser(HTMLParser):
 
 
 
+if len(sys.argv) == 3:
+    file = open(sys.argv[1], 'r')
+    data = file.read()
 
-file = open('guitar-trainer.html', 'r')
-data = file.read()
+    parser = MyHTMLParser()
+    parser.feed(data)
 
-parser = MyHTMLParser()
-parser.feed(data)
-
-parser.exportData("test.json")
+    parser.exportData(sys.argv[2])
+else:
+    print("Aborting. Inputs are 'input file' and 'desired file name'")
