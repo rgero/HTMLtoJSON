@@ -57,12 +57,11 @@ class MyHTMLParser(HTMLParser):
             elif tag == "iframe":
                 # we can ignore a lot of the attributes because we're going to assume they are consistent.
                 link = ""
+                self.currentTag = "iframe"
                 for i in attrs:
                     if i[0] == "src":
                         link = i[1]
                 self.currentItem = {"iframe": link}
-                self.docDic["pageContent"].append(self.currentItem)
-                self.currentItem = None
 
         if tag == "a":
             link = attrs[0][1]
