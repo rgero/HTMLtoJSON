@@ -121,12 +121,14 @@ class MyHTMLParser(HTMLParser):
 
 if len(sys.argv) == 3:
     try:
-        file = open(sys.argv[1], 'r')
-        data = file.read()
+        if os.path.isfile(sys.argv[1]):
+            file = open(sys.argv[1], 'r')
+            data = file.read()
+        else:
+            raise Exception("Input File does not exist")
 
         parser = MyHTMLParser()
         parser.feed(data)
-
         parser.exportData(sys.argv[2])
     except Exception as e:
         print(e)
