@@ -4,7 +4,7 @@
 
 '''
 from html.parser import HTMLParser
-import sys
+import sys, os
 
 class MyHTMLParser(HTMLParser):
 
@@ -120,12 +120,15 @@ class MyHTMLParser(HTMLParser):
 
 
 if len(sys.argv) == 3:
-    file = open(sys.argv[1], 'r')
-    data = file.read()
+    try:
+        file = open(sys.argv[1], 'r')
+        data = file.read()
 
-    parser = MyHTMLParser()
-    parser.feed(data)
+        parser = MyHTMLParser()
+        parser.feed(data)
 
-    parser.exportData(sys.argv[2])
+        parser.exportData(sys.argv[2])
+    except Exception as e:
+        print(e)
 else:
     print("Aborting. Inputs are 'input file' and 'desired file name'")
