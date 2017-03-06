@@ -14,19 +14,29 @@ class MyHTMLParser(HTMLParser):
         self.docDic["pageContent"] = [[]]
         self.currentItem = None
         self.currentTag = None
+        self.parentTag = None
 
 
     def handle_starttag(self, tag, attrs):
-        if tag.lower() != "center":
-            self.currentTag = tag.lower()
-            self.currentItem = { str(tag.lower()) : []}
-            if len(attrs) == 0:
-                self.currentItem[str(tag.lower())].append("None")
+        if tag.lower() != "center" and tag.lower() != "a":
+            if tag == "ol"  or tag == "ul" and self.parentTag == None:
+                self.parentTag = tag
+                if tag == "ol":
+                    self.currentItem = {"ordered_list": []}
+                else:
+                    self.currentItem = {"unordered_list": []}
+            elif tag == "li":
+                self.currentTag = "li"
             else:
-                attrDic = {}
-                for i in attrs:
-                    attrDic[str(i[0])] = str(i[1])
-                self.currentItem[str(tag.lower())].append(attrDic)
+                self.currentTag = tag.lower()
+                self.currentItem = { str(tag.lower()) : []}
+                if len(attrs) == 0:
+                    self.currentItem[str(tag.lower())].append("None")
+                else:
+                    attrDic = {}
+                    for i in attrs:
+                        attrDic[str(i[0])] = str(i[1])
+                    self.currentItem[str(tag.lower())].append(attrDic)
 
     def handle_endtag(self, tag):
         if self.currentItem != None:
@@ -35,7 +45,15 @@ class MyHTMLParser(HTMLParser):
         self.currentTag = None
 
     def handle_data(self, data):
-        if self.currentTag != None:
+        if self.parentTag != None:
+            if self.currentTag == "li":
+                if self.parentTag == "ol":
+                    key = "ordered_list"
+                else:
+                    key = "unordered_list"
+                if key in self.currentItem.keys():
+                    self.currentItem[key].append(data.rstrip())
+        elif self.currentTag != None:
             if data != "":
                 self.currentItem[ self.currentTag ].append(data)
             else:
